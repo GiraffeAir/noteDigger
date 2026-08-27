@@ -398,9 +398,9 @@ function _IO(parent) {
                 alignRate = Math.max(Math.round(alignRate), 2);
                 // 初始化midi
                 let begin = parent.BeatBar.beats[0];
-                let lastbpm = begin.bpm;    // 用于自适应bpm
+                let lastMidiBpm = begin.bpm * 4 / begin.beatUnit;    // MIDI使用四分音符BPM
                 let lastPattern = `${begin.beatNum}/${begin.beatUnit}`;
-                const newMidi = new midi(lastbpm, [begin.beatNum, begin.beatUnit], 480, [], parent.AudioPlayer.name);
+                const newMidi = new midi(lastMidiBpm, [begin.beatNum, begin.beatUnit], 480, [], parent.AudioPlayer.name);
                 const mts = [];
                 for (const ch of parent.synthesizer.channel) {
                     let mt = newMidi.addTrack();
@@ -440,10 +440,10 @@ function _IO(parent) {
                     if (m_i == mlen) break;
 
                     //== 判断小节是否变化 假设小节之间bpm相关性很强 ==//
-                    const bpmnow = measure.bpm;
-                    if (Math.abs(bpmnow - lastbpm) > lastbpm * 0.065) {
-                        mts[0].events.push(midiEvent.tempo(tickNow, bpmnow * 4 / measure.beatUnit));
-                    } lastbpm = bpmnow;
+                    const midiBpmNow = measure.bpm * 4 / measure.beatUnit;
+                    if (Math.abs(midiBpmNow - lastMidiBpm) > lastMidiBpm * 0.065) {
+                        mts[0].events.push(midiEvent.tempo(tickNow, midiBpmNow));
+                    } lastMidiBpm = midiBpmNow;
                     const _ptn = `${measure.beatNum}/${measure.beatUnit}`;
                     if (lastPattern !== _ptn) {
                         mts[0].events.push(midiEvent.time_signature(tickNow, measure.beatNum, measure.beatUnit));
